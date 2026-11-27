@@ -8,6 +8,7 @@ let lenis = null;
 document.addEventListener('DOMContentLoaded', () => {
   initLenis();
   initMobileNav();
+  initContentProtection();
   initInteractiveMouse();
   initScrollReveal();
   initCardSpotlights();
@@ -333,4 +334,62 @@ function initInteractiveMouse() {
     mouseX = window.innerWidth / 2;
     mouseY = window.innerHeight / 2;
   }, { passive: true });
+}
+
+/**
+ * Content & Inspection Protection (Anti-Select, Right Click, F12, Ctrl+U block)
+ */
+function initContentProtection() {
+  // 1. Block Context Menu (Right Click)
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    return false;
+  }, false);
+
+  // 2. Block Text Selection & Dragging
+  document.addEventListener('selectstart', (e) => {
+    if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+      e.preventDefault();
+      return false;
+    }
+  }, false);
+
+  document.addEventListener('dragstart', (e) => {
+    e.preventDefault();
+    return false;
+  }, false);
+
+  // 3. Block Inspection Shortcuts (F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S)
+  document.addEventListener('keydown', (e) => {
+    const key = e.key ? e.key.toLowerCase() : '';
+    const code = e.keyCode || e.which;
+
+    // F12 (DevTools)
+    if (key === 'f12' || code === 123) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (Inspect / Console)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c' || code === 73 || code === 74 || code === 67)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Ctrl+U (View Page Source)
+    if ((e.ctrlKey || e.metaKey) && (key === 'u' || code === 85)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+
+    // Ctrl+S (Save Page)
+    if ((e.ctrlKey || e.metaKey) && (key === 's' || code === 83)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, false);
 }
