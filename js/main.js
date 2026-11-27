@@ -1,13 +1,12 @@
 /**
  * Samadie Technology — Main Interaction Script
- * Powered by Lenis Smooth Scroll & Vanilla ES Module
+ * High-Performance Optimized Vanilla JS with Lenis
  */
 
 let lenis = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   initLenis();
-  initStickyHeader();
   initMobileNav();
   initInteractiveMouse();
   initScrollReveal();
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Initialize Lenis Smooth Scroll
+ * Initialize Lenis Smooth Scroll (Optimized for 0 lag and 120Hz/60Hz display response)
  */
 function initLenis() {
   if (typeof window.Lenis === 'undefined') {
@@ -30,15 +29,13 @@ function initLenis() {
     return;
   }
 
-  // Create Lenis instance with tuned physics
+  // Tuned for immediate, crisp response without sluggish delay
   lenis = new window.Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential deceleration
-    direction: 'vertical',
-    gestureDirection: 'vertical',
-    smooth: true,
-    smoothTouch: false, // Maintain native responsive touch on mobile screens
-    touchMultiplier: 1.5,
+    lerp: 0.1,             // Direct linear interpolation - zero input lag
+    wheelMultiplier: 1.0,  // Natural 1:1 wheel scrolling ratio
+    touchMultiplier: 1.0,  // Keep native responsive touch speed on mobile
+    infinite: false,
+    syncTouch: false,
   });
 
   // RAF loop
@@ -48,19 +45,19 @@ function initLenis() {
   }
   requestAnimationFrame(raf);
 
-  // Sync sticky header with Lenis scroll events
+  // High-performance cached sticky header update
+  const header = document.getElementById('header');
+  let isHeaderScrolled = false;
+
   lenis.on('scroll', ({ scroll }) => {
-    const header = document.getElementById('header');
-    if (header) {
-      if (scroll > 20) {
-        header.classList.add('is-scrolled');
-      } else {
-        header.classList.remove('is-scrolled');
-      }
+    const shouldBeScrolled = scroll > 20;
+    if (shouldBeScrolled !== isHeaderScrolled) {
+      isHeaderScrolled = shouldBeScrolled;
+      header?.classList.toggle('is-scrolled', isHeaderScrolled);
     }
   });
 
-  // Anchor link navigation with Lenis
+  // Fast anchor link navigation with Lenis
   document.addEventListener('click', (e) => {
     const anchor = e.target.closest('a[href^="#"]');
     if (!anchor) return;
@@ -73,13 +70,11 @@ function initLenis() {
 
     e.preventDefault();
 
-    const header = document.getElementById('header');
-    const headerOffset = header ? header.offsetHeight + 12 : 88;
+    const headerHeight = header ? header.offsetHeight + 10 : 86;
 
     lenis.scrollTo(target, {
-      offset: -headerOffset,
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      offset: -headerHeight,
+      lerp: 0.12,
       onComplete: () => {
         if (history.pushState) {
           history.pushState(null, '', href);
@@ -95,6 +90,17 @@ function initLenis() {
  * Fallback smooth scroll for reduced motion or when Lenis is unavailable
  */
 function initFallbackSmoothScroll() {
+  const header = document.getElementById('header');
+  let isHeaderScrolled = false;
+
+  window.addEventListener('scroll', () => {
+    const shouldBeScrolled = window.scrollY > 20;
+    if (shouldBeScrolled !== isHeaderScrolled) {
+      isHeaderScrolled = shouldBeScrolled;
+      header?.classList.toggle('is-scrolled', isHeaderScrolled);
+    }
+  }, { passive: true });
+
   document.addEventListener('click', (e) => {
     const anchor = e.target.closest('a[href^="#"]');
     if (!anchor) return;
@@ -107,8 +113,7 @@ function initFallbackSmoothScroll() {
 
     e.preventDefault();
 
-    const header = document.getElementById('header');
-    const headerOffset = header ? header.offsetHeight + 12 : 88;
+    const headerOffset = header ? header.offsetHeight + 10 : 86;
     const targetY = target.getBoundingClientRect().top + window.scrollY - headerOffset;
 
     window.scrollTo({
@@ -122,25 +127,6 @@ function initFallbackSmoothScroll() {
     target.setAttribute('tabindex', '-1');
     target.focus({ preventScroll: true });
   });
-}
-
-/**
- * Sticky Header Glassmorphism (fallback native listener)
- */
-function initStickyHeader() {
-  const header = document.getElementById('header');
-  if (!header) return;
-
-  const handleScroll = () => {
-    if (window.scrollY > 20) {
-      header.classList.add('is-scrolled');
-    } else {
-      header.classList.remove('is-scrolled');
-    }
-  };
-
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  handleScroll();
 }
 
 /**
@@ -231,7 +217,7 @@ function initScrollReveal() {
  * Cursor Spotlight effect for Cards (Desktop / Hover capable)
  */
 function initCardSpotlights() {
-  if (!window.matchMedia('(hover: hover)').matches) return;
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
   const cards = document.querySelectorAll('.card');
   cards.forEach(card => {
@@ -297,21 +283,17 @@ function initInteractiveMouse() {
   let rafId = null;
 
   function update() {
-    // Smooth linear interpolation for buttery motion
-    currentX += (mouseX - currentX) * 0.085;
-    currentY += (mouseY - currentY) * 0.085;
+    currentX += (mouseX - currentX) * 0.1;
+    currentY += (mouseY - currentY) * 0.1;
 
-    // Normalised coordinates (-1 to 1) from viewport center
     const normX = (currentX / window.innerWidth) * 2 - 1;
     const normY = (currentY / window.innerHeight) * 2 - 1;
 
-    // Set CSS properties for ambient laser spotlight and circuit parallax
     root.style.setProperty('--mouse-x', `${currentX.toFixed(1)}px`);
     root.style.setProperty('--mouse-y', `${currentY.toFixed(1)}px`);
     root.style.setProperty('--bg-dx', `${(-normX).toFixed(3)}`);
     root.style.setProperty('--bg-dy', `${(-normY).toFixed(3)}`);
 
-    // 3D tilt on hero workbench circuit frame
     if (circuitFrame) {
       const rect = circuitFrame.getBoundingClientRect();
       const frameCenterX = rect.left + rect.width / 2;
@@ -325,7 +307,7 @@ function initInteractiveMouse() {
       root.style.setProperty('--tilt-y', clampedY.toFixed(3));
     }
 
-    if (Math.abs(mouseX - currentX) > 0.1 || Math.abs(mouseY - currentY) > 0.1) {
+    if (Math.abs(mouseX - currentX) > 0.15 || Math.abs(mouseY - currentY) > 0.15) {
       rafId = requestAnimationFrame(update);
     } else {
       isMoving = false;
