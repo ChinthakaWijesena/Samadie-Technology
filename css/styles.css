@@ -221,6 +221,9 @@
     width: 100%;
     height: 100%;
     opacity: 0.85;
+    transform: translate3d(calc(var(--bg-dx, 0) * 20px), calc(var(--bg-dy, 0) * 20px), 0) scale(1.02);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: center center;
   }
 
   .ambient-glow {
@@ -231,6 +234,22 @@
       radial-gradient(circle at 82% 70%, color-mix(in oklab, var(--accent) 7%, transparent), transparent 52%),
       radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--accent-2) 4%, transparent), transparent 60%);
     filter: blur(48px);
+  }
+
+  /* Interactive Cursor Spotlight Glow */
+  .cursor-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      650px circle at var(--mouse-x, 50vw) var(--mouse-y, 50vh),
+      color-mix(in oklab, var(--accent) 22%, transparent) 0%,
+      color-mix(in oklab, var(--accent) 8%, transparent) 40%,
+      transparent 70%
+    );
+    mix-blend-mode: screen;
+    opacity: var(--mouse-active, 0);
+    transition: opacity 0.5s ease;
   }
 
   .trace {
@@ -636,6 +655,13 @@
     padding: 1.25rem;
     box-shadow: var(--shadow), var(--shadow-glow);
     overflow: hidden;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(calc(var(--tilt-y, 0) * -7deg)) rotateY(calc(var(--tilt-x, 0) * 7deg)) translateZ(0);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  }
+
+  .circuit-frame:hover {
+    box-shadow: var(--shadow), 0 0 50px -5px color-mix(in oklab, var(--accent) 55%, transparent);
   }
 
   .frame-corner {
@@ -1539,6 +1565,15 @@
     .floating-pulse,
     .chip-dot {
       animation: none !important;
+    }
+
+    .circuit-svg,
+    .circuit-frame {
+      transform: none !important;
+    }
+
+    .cursor-glow {
+      display: none !important;
     }
 
     html.js [data-reveal] {

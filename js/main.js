@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLenis();
   initStickyHeader();
   initMobileNav();
+  initInteractiveMouse();
   initScrollReveal();
   initCardSpotlights();
   initActiveNavSpy();
@@ -276,4 +277,78 @@ function initActiveNavSpy() {
 
     sections.forEach(section => observer.observe(section));
   }
+}
+
+/**
+ * Interactive Background Spotlight & 3D Workbench Parallax on Pointer Move
+ */
+function initInteractiveMouse() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  const root = document.documentElement;
+  const circuitFrame = document.querySelector('.circuit-frame');
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let currentX = mouseX;
+  let currentY = mouseY;
+  let isMoving = false;
+  let rafId = null;
+
+  function update() {
+    // Smooth linear interpolation for buttery motion
+    currentX += (mouseX - currentX) * 0.085;
+    currentY += (mouseY - currentY) * 0.085;
+
+    // Normalised coordinates (-1 to 1) from viewport center
+    const normX = (currentX / window.innerWidth) * 2 - 1;
+    const normY = (currentY / window.innerHeight) * 2 - 1;
+
+    // Set CSS properties for ambient laser spotlight and circuit parallax
+    root.style.setProperty('--mouse-x', `${currentX.toFixed(1)}px`);
+    root.style.setProperty('--mouse-y', `${currentY.toFixed(1)}px`);
+    root.style.setProperty('--bg-dx', `${(-normX).toFixed(3)}`);
+    root.style.setProperty('--bg-dy', `${(-normY).toFixed(3)}`);
+
+    // 3D tilt on hero workbench circuit frame
+    if (circuitFrame) {
+      const rect = circuitFrame.getBoundingClientRect();
+      const frameCenterX = rect.left + rect.width / 2;
+      const frameCenterY = rect.top + rect.height / 2;
+      const distFrameX = (currentX - frameCenterX) / (window.innerWidth / 2);
+      const distFrameY = (currentY - frameCenterY) / (window.innerHeight / 2);
+      const clampedX = Math.max(-1, Math.min(1, distFrameX));
+      const clampedY = Math.max(-1, Math.min(1, distFrameY));
+
+      root.style.setProperty('--tilt-x', clampedX.toFixed(3));
+      root.style.setProperty('--tilt-y', clampedY.toFixed(3));
+    }
+
+    if (Math.abs(mouseX - currentX) > 0.1 || Math.abs(mouseY - currentY) > 0.1) {
+      rafId = requestAnimationFrame(update);
+    } else {
+      isMoving = false;
+    }
+  }
+
+  window.addEventListener('pointermove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    root.style.setProperty('--mouse-active', '1');
+
+    if (!isMoving) {
+      isMoving = true;
+      rafId = requestAnimationFrame(update);
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', () => {
+    root.style.setProperty('--mouse-active', '0');
+  });
+
+  window.addEventListener('resize', () => {
+    mouseX = window.innerWidth / 2;
+    mouseY = window.innerHeight / 2;
+  }, { passive: true });
 }
